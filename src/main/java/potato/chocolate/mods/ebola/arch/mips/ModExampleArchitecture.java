@@ -20,8 +20,8 @@ import java.util.concurrent.Callable;
  */
 @Mod(modid = "OpenComputers|MIPS",
         name = "MIPS for OpenComputers",
-        version = "1.0.0",
-        dependencies = "required-after:OpenComputers@[1.4.0,)")
+        version = "1.0.1",
+        dependencies = "required-after:OpenComputers@[1.7.0,)")
 public class ModExampleArchitecture {
     @Mod.Instance
     public static ModExampleArchitecture instance;
