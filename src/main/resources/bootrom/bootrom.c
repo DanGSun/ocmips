@@ -1,14 +1,3 @@
-#if 0
-#mipsel-none-elf-gcc -G0 -fomit-frame-pointer -Wl,-T,bootrom.ld -Os -nostdlib -o boot.elf bootrom.c && \
-#mipsel-none-elf-gcc -G0 -g -Os -fno-toplevel-reorder -fomit-frame-pointer -Wl,-Ttext-segment=0xFE8 -nostdlib -o boot.elf bootrom.c && \
-
-mipsel-none-elf-gcc -G0 -g -O1 -fno-toplevel-reorder -fomit-frame-pointer -Wl,-T,bootrom.ld -nostdlib -o boot.elf bootrom.c && \
-mipsel-none-elf-objcopy -Obinary boot.elf boot.bin && \
-ls -l boot.* &&
-true
-exit $?
-#endif
-
 #include <stdint.h>
 
 #define STYP_NUL 0

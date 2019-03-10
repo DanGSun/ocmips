@@ -35,7 +35,7 @@ public class ModExampleArchitecture {
     public void init(FMLInitializationEvent ev) {
         byte[] elf_code = new byte[4096];
         try {
-            int code_len = this.getClass().getResourceAsStream("/boot.bin").read(elf_code, 0, 4096);
+            int code_len = this.getClass().getResourceAsStream("/bootrom/boot.bin").read(elf_code, 0, 4096);
             li.cil.oc.api.Items.registerEEPROM("MIPS ELF BIOS", elf_code, null, true);
             System.out.printf("Length of boot.bin: %d bytes\n", code_len);
         } catch(IOException e) {
