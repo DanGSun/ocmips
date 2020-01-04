@@ -92,7 +92,7 @@ public class PseudoArchitecture implements Architecture {
 
         // Go through RAM sticks
         for(ItemStack isk : components) {
-            li.cil.oc.api.driver.Item d = Driver.driverFor(isk);
+            li.cil.oc.api.driver.DriverItem d = Driver.driverFor(isk);
 
             if(d instanceof Memory) {
                 Memory m = (Memory)d;

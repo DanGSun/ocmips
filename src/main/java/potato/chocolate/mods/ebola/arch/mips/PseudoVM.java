@@ -6,10 +6,15 @@ import li.cil.oc.api.machine.Signal;
 import li.cil.oc.api.prefab.AbstractValue;
 
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
-/** The VM itself. This is just an example, it's not a "real" interface. */
+// Test
+
+/**
+ * The VM itself. This is just an example, it's not a "real" interface.
+ */
 public class PseudoVM {
     Machine machine;
 
@@ -39,62 +44,54 @@ public class PseudoVM {
     byte[] cmp_buf_error = new byte[64];
     int cmp_method_ptr = 0;
 
-    private int read_32_of(byte[] buf, int offs)
-    {
+    private int read_32_of(byte[] buf, int offs) {
         int v = 0;
-        if(offs+0 < buf.length) v |= (0xFF&(int)buf[offs+0])<<0;
-        if(offs+1 < buf.length) v |= (0xFF&(int)buf[offs+1])<<8;
-        if(offs+2 < buf.length) v |= (0xFF&(int)buf[offs+2])<<16;
-        if(offs+3 < buf.length) v |= (0xFF&(int)buf[offs+3])<<24;
+        if (offs + 0 < buf.length) v |= (0xFF & (int) buf[offs + 0]) << 0;
+        if (offs + 1 < buf.length) v |= (0xFF & (int) buf[offs + 1]) << 8;
+        if (offs + 2 < buf.length) v |= (0xFF & (int) buf[offs + 2]) << 16;
+        if (offs + 3 < buf.length) v |= (0xFF & (int) buf[offs + 3]) << 24;
         return v;
     }
 
-    private void write_32_of_masked(byte[] buf, int offs, int v, int mask)
-    {
-        if((mask&(0xFF<<0)) != 0 && offs+0 < buf.length) buf[offs+0] = (byte)(v>>0);
-        if((mask&(0xFF<<8)) != 0 && offs+1 < buf.length) buf[offs+1] = (byte)(v>>8);
-        if((mask&(0xFF<<16)) != 0 && offs+2 < buf.length) buf[offs+2] = (byte)(v>>16);
-        if((mask&(0xFF<<24)) != 0 && offs+3 < buf.length) buf[offs+3] = (byte)(v>>24);
+    private void write_32_of_masked(byte[] buf, int offs, int v, int mask) {
+        if ((mask & (0xFF << 0)) != 0 && offs + 0 < buf.length) buf[offs + 0] = (byte) (v >> 0);
+        if ((mask & (0xFF << 8)) != 0 && offs + 1 < buf.length) buf[offs + 1] = (byte) (v >> 8);
+        if ((mask & (0xFF << 16)) != 0 && offs + 2 < buf.length) buf[offs + 2] = (byte) (v >> 16);
+        if ((mask & (0xFF << 24)) != 0 && offs + 3 < buf.length) buf[offs + 3] = (byte) (v >> 24);
     }
 
     private void parse_retval(int i, Object retval) {
-        if(retval == null) {
+        if (retval == null) {
             this.cmp_arg_typ_list[i][1] = 0;
             this.cmp_arg_typ_list[i][0] = 0;
-        } else if(retval instanceof Boolean) {
+        } else if (retval instanceof Boolean) {
             this.cmp_arg_typ_list[i][1] = 2;
-            this.cmp_arg_typ_list[i][0] = ((boolean)(Boolean)retval ? 1 : 0);
-        } else if(retval instanceof String) {
-            try {
-                cmp_call_retarray[i] = ((String)retval).getBytes("ISO-8859-1");
-                this.cmp_arg_typ_list[i][0] = cmp_call_retarray[i].length;
-                this.cmp_arg_typ_list[i][1] = 4;
-            } catch (UnsupportedEncodingException e) {
-                e.printStackTrace();
-                this.cmp_arg_typ_list[i][0] = 2;
-                this.cmp_arg_typ_list[i][1] = 0;
-            }
-        } else if(retval instanceof byte[]) {
-            this.cmp_arg_typ_list[i][1] = 4;
-            cmp_call_retarray[i] = ((byte[])retval);
+            this.cmp_arg_typ_list[i][0] = ((boolean) (Boolean) retval ? 1 : 0);
+        } else if (retval instanceof String) {
+            cmp_call_retarray[i] = ((String) retval).getBytes(StandardCharsets.ISO_8859_1);
             this.cmp_arg_typ_list[i][0] = cmp_call_retarray[i].length;
-        } else if(retval instanceof Integer) {
+            this.cmp_arg_typ_list[i][1] = 4;
+        } else if (retval instanceof byte[]) {
+            this.cmp_arg_typ_list[i][1] = 4;
+            cmp_call_retarray[i] = ((byte[]) retval);
+            this.cmp_arg_typ_list[i][0] = cmp_call_retarray[i].length;
+        } else if (retval instanceof Integer) {
             this.cmp_arg_typ_list[i][1] = 6;
-            this.cmp_arg_typ_list[i][0] = (Integer)retval;
-        } else if(retval instanceof Long) {
+            this.cmp_arg_typ_list[i][0] = (Integer) retval;
+        } else if (retval instanceof Long) {
             // truncate it anyway
             this.cmp_arg_typ_list[i][1] = 6;
-            this.cmp_arg_typ_list[i][0] = (int)(long)(Long)retval;
-        } else if(retval instanceof Float) {
+            this.cmp_arg_typ_list[i][0] = (int) (long) (Long) retval;
+        } else if (retval instanceof Float) {
             this.cmp_arg_typ_list[i][1] = 8;
-            this.cmp_arg_typ_list[i][0] = Float.floatToIntBits((Float)retval);
-        } else if(retval instanceof Double) {
+            this.cmp_arg_typ_list[i][0] = Float.floatToIntBits((Float) retval);
+        } else if (retval instanceof Double) {
             this.cmp_arg_typ_list[i][1] = 8;
-            this.cmp_arg_typ_list[i][0] = Float.floatToIntBits((float)(double)(Double)retval);
-        } else if(retval instanceof AbstractValue) {
+            this.cmp_arg_typ_list[i][0] = Float.floatToIntBits((float) (double) (Double) retval);
+        } else if (retval instanceof AbstractValue) {
             this.cmp_arg_typ_list[i][1] = 10;
-            AbstractValue av = (AbstractValue)retval;
-            if(!io_handlemap.containsKey(av)) {
+            AbstractValue av = (AbstractValue) retval;
+            if (!io_handlemap.containsKey(av)) {
                 //System.out.printf("AbstractValue acquire handle %s %d\n", av.toString(),
                 //io_handlebeg);
                 io_handlemap.put(av, io_handlebeg);
@@ -111,12 +108,12 @@ public class PseudoVM {
     }
 
     int busReadMask32(int addr_, int mask_) {
-        if((addr_&~0x3F) == 0x1FF00200)
-            return read_32_of(this.cmp_buf_addr, addr_&0x3C);
-        if((addr_&~0x3F) == 0x1FF00240)
-            return read_32_of(this.cmp_buf_type_method, addr_&0x3C);
-        if((addr_&~0xFF) == 0x1FF00300)
-            return this.cmp_arg_typ_list[(addr_>>3)&31][(addr_>>2)&1];
+        if ((addr_ & ~0x3F) == 0x1FF00200)
+            return read_32_of(this.cmp_buf_addr, addr_ & 0x3C);
+        if ((addr_ & ~0x3F) == 0x1FF00240)
+            return read_32_of(this.cmp_buf_type_method, addr_ & 0x3C);
+        if ((addr_ & ~0xFF) == 0x1FF00300)
+            return this.cmp_arg_typ_list[(addr_ >> 3) & 31][(addr_ >> 2) & 1];
 
         switch (addr_ & 0xFFFFF) {
             case 0x00004:
@@ -133,10 +130,10 @@ public class PseudoVM {
 
             case 0x00020:
                 // wall clock, microseconds
-                return (int)(1000L*System.currentTimeMillis());
+                return (int) (1000L * System.currentTimeMillis());
             case 0x00024:
                 // wall clock
-                return (int)((1000L*System.currentTimeMillis())>>20);
+                return (int) ((1000L * System.currentTimeMillis()) >> 20);
 
             case 0x00280:
                 return this.cmp_method_ptr;
@@ -152,32 +149,31 @@ public class PseudoVM {
                     cmp_list_type[i] = n.getValue();
                     i++;
                 }
-                return cmp_list_addr.length*0x01010101;
+                return cmp_list_addr.length * 0x01010101;
             }
 
             case 0x00286: {
                 // method call argument count return
-                return cmp_call_retcnt*0x01010101;
+                return cmp_call_retcnt * 0x01010101;
             }
 
             case 0x00287: {
                 // event pull strobe
                 Signal sig = machine.popSignal();
-                if(sig == null)
+                if (sig == null)
                     return 0;
 
                 System.out.printf("Event: (%s", sig.name());
                 parse_retval(0, sig.name());
                 Object[] retvals = sig.args();
-                int retcount = Math.min(32, (retvals == null ? 0 : retvals.length)+1);
-                for(int i = 1; i < retcount; i++)
-                {
-                    System.out.printf(", %s", retvals[i-1].toString());
-                    parse_retval(i, retvals[i-1]);
+                int retcount = Math.min(32, (retvals == null ? 0 : retvals.length) + 1);
+                for (int i = 1; i < retcount; i++) {
+                    System.out.printf(", %s", retvals[i - 1].toString());
+                    parse_retval(i, retvals[i - 1]);
                 }
                 System.out.printf(")\n");
 
-                return retcount*0x01010101;
+                return retcount * 0x01010101;
             }
 
             case 0x00288:
@@ -205,13 +201,13 @@ public class PseudoVM {
             return;
         }
 
-        byte data8 = (byte)((data_)>>((addr_&3)*8));
+        byte data8 = (byte) ((data_) >> ((addr_ & 3) * 8));
 
         switch (addr_ & 0xFFFFF) {
             case 0x00004:
                 //System.out.printf("%c", data8);
-                mips.outbuf += (char)data8;
-                if (mips.outbuf.length() >= mips.OUTBUF_LEN) {
+                mips.outbuf += (char) data8;
+                if (mips.outbuf.length() >= Jipsy.OUTBUF_LEN) {
                     // debug output disabled for now.
                     // might be useful for the analyser, though!
                     //System.out.print(this.outbuf);
@@ -226,7 +222,7 @@ public class PseudoVM {
                 return;
 
             case 0x00024:
-                mips.c0_cause &= ~(1<<10);
+                mips.c0_cause &= ~(1 << 10);
                 long tnew = System.currentTimeMillis();
                 if ((tnew - mips.interrupt_timer_next) >= 0) {
                     mips.c0_cause |= (1 << 10);
@@ -243,11 +239,11 @@ public class PseudoVM {
                 return;
 
             case 0x00025:
-                if(data8 == 0) {
+                if (data8 == 0) {
                     mips.interrupt_timer_enabled = false;
-                    mips.c0_cause &= ~(1<<10);
+                    mips.c0_cause &= ~(1 << 10);
                     //System.out.printf("timer interrupt stopped - status=%08X, cause=%08X\n", c0_status, c0_cause);
-                } else if(data8 == 1) {
+                } else if (data8 == 1) {
                     mips.interrupt_timer_enabled = true;
                     mips.interrupt_timer_next = System.currentTimeMillis() + 1000 / 20;
                     //System.out.printf("timer interrupt started - status=%08X, cause=%08X\n", c0_status, c0_cause);
@@ -270,19 +266,15 @@ public class PseudoVM {
                     return;
                 }
 
-                try {
-                    byte[] b;
-                    b = cmp_list_addr[data8].getBytes("ISO-8859-1");
-                    System.arraycopy(b, 0, cmp_buf_addr, 0, Math.min(63, b.length));
-                    cmp_buf_addr[Math.min(63, b.length)] = 0;
-                    b = cmp_list_type[data8].getBytes("ISO-8859-1");
-                    System.arraycopy(b, 0, cmp_buf_type_method, 0, Math.min(63, b.length));
-                    cmp_buf_type_method[Math.min(63, b.length)] = 0;
-                    cmp_buf_addr[63] = 0;
-                    cmp_buf_type_method[63] = 0;
-                } catch (UnsupportedEncodingException e) {
-                    throw new RuntimeException(e);
-                }
+                byte[] b;
+                b = cmp_list_addr[data8].getBytes(StandardCharsets.ISO_8859_1);
+                System.arraycopy(b, 0, cmp_buf_addr, 0, Math.min(63, b.length));
+                cmp_buf_addr[Math.min(63, b.length)] = 0;
+                b = cmp_list_type[data8].getBytes(StandardCharsets.ISO_8859_1);
+                System.arraycopy(b, 0, cmp_buf_type_method, 0, Math.min(63, b.length));
+                cmp_buf_type_method[Math.min(63, b.length)] = 0;
+                cmp_buf_addr[63] = 0;
+                cmp_buf_type_method[63] = 0;
 
                 return;
             }
@@ -290,15 +282,15 @@ public class PseudoVM {
             case 0x00286: {
                 // method call strobe
                 String address = new String(this.cmp_buf_addr);
-                if(address.indexOf('\u0000') >= 0)
+                if (address.indexOf('\u0000') >= 0)
                     address = address.substring(0, address.indexOf('\u0000'));
                 String method_name = mips.mem_read_cstr(this.cmp_method_ptr & 0x1FFFFFFF);
                 //System.out.printf("Calling %s method %s...\n", address, method_name);
                 int arg_count = Math.min(32, data8);
                 Object[] args = new Object[arg_count];
 
-                for(int i = 0; i < arg_count; i++) {
-                    switch(cmp_arg_typ_list[i][1]) {
+                for (int i = 0; i < arg_count; i++) {
+                    switch (cmp_arg_typ_list[i][1]) {
                         case 0: // nil
                             args[i] = null;
                             break;
@@ -315,8 +307,8 @@ public class PseudoVM {
                             args[i] = Float.intBitsToFloat(this.cmp_arg_typ_list[i][0]);
                             break;
                         case 10: // AbstractValue
-                            if (io_handlemap_rev.containsKey((Integer)this.cmp_arg_typ_list[i][0])) {
-                                AbstractValue av = io_handlemap_rev.get((Integer) this.cmp_arg_typ_list[i][0]);
+                            if (io_handlemap_rev.containsKey(this.cmp_arg_typ_list[i][0])) {
+                                AbstractValue av = io_handlemap_rev.get(this.cmp_arg_typ_list[i][0]);
                                 args[i] = av;
                                 //System.out.printf("AbstractValue supply handle %s %d\n", av.toString(),
                                 //(Integer)this.cmp_arg_typ_list[i][0]);
@@ -324,17 +316,16 @@ public class PseudoVM {
                                 args[i] = null;
                             }
                             break;
-                        default:
-                            {
-                                int typ = cmp_arg_typ_list[i][1];
-                                if ((typ & 0xFF000000) == 0x01000000) {
-                                    // string, explicit length
-                                    args[i] = mips.mem_read_pstr_bytes(this.cmp_arg_typ_list[i][0] & 0x1FFFFFFF, typ&0xFFFFFF);
-                                } else {
-                                    args[i] = null;
-                                }
+                        default: {
+                            int typ = cmp_arg_typ_list[i][1];
+                            if ((typ & 0xFF000000) == 0x01000000) {
+                                // string, explicit length
+                                args[i] = mips.mem_read_pstr_bytes(this.cmp_arg_typ_list[i][0] & 0x1FFFFFFF, typ & 0xFFFFFF);
+                            } else {
+                                args[i] = null;
                             }
-                            break;
+                        }
+                        break;
                     }
                 }
 
@@ -345,7 +336,7 @@ public class PseudoVM {
                     Object[] rets;
                     try {
                         rets = machine.invoke(address, method_name, args);
-                    } catch(LimitReachedException e) {
+                    } catch (LimitReachedException e) {
                         // jump back to here
                         // FIXME: BLATANT HACK
                         // FIXME: EVEN MORE BLATANT HACK
@@ -364,13 +355,13 @@ public class PseudoVM {
                     for (int i = 0; i < this.cmp_call_retcnt; i++) {
                         parse_retval(i, rets[i]);
                     }
-                } catch(Exception e) {
+                } catch (Exception e) {
                     //System.err.printf("%08X: call failed: %s.\n", this.op_pc, e.getMessage());
                     //System.err.printf("exception!\n");
                     //e.printStackTrace();
                     String err = e.getMessage();
-                    if(err == null) err = e.toString();
-                    if(err == null) err = "(null?)";
+                    if (err == null) err = e.toString();
+                    if (err == null) err = "(null?)";
                     byte[] b = err.getBytes();
                     System.arraycopy(b, 0, this.cmp_buf_error, 0, Math.min(63, b.length));
                     this.cmp_buf_error[Math.min(63, b.length)] = 0;
@@ -379,7 +370,7 @@ public class PseudoVM {
                 }
 
                 // Sleep if that was a sync call
-                if(mips.sync_call) {
+                if (mips.sync_call) {
                     mips.need_sleep = true;
                     mips.sync_call = false;
                 }
@@ -390,21 +381,20 @@ public class PseudoVM {
                 // fetch string strobe
 
                 // ignore if invalid
-                if(data8 < 0 || data8 >= this.cmp_call_retcnt
+                if (data8 < 0 || data8 >= this.cmp_call_retcnt
                         || this.cmp_call_retarray[data8] == null)
                     return;
 
-                for(int i = 0; i < Math.min(this.cmp_call_retlen,
-                        this.cmp_call_retarray[data8].length); i++)
-                {
+                for (int i = 0; i < Math.min(this.cmp_call_retlen,
+                        this.cmp_call_retarray[data8].length); i++) {
                     // lop off top few bits for convenience
 
                     // stop if we aren't even in memory
-                    if(((this.cmp_call_retptr+i) & 0x1FFFFFFF) >= mips.ram_bytes)
+                    if (((this.cmp_call_retptr + i) & 0x1FFFFFFF) >= mips.ram_bytes)
                         break;
 
                     // write
-                    mips.mem_write_8((this.cmp_call_retptr+i) & 0x1FFFFFFF, 0xA0000000, this.cmp_call_retarray[data8][i]);
+                    mips.mem_write_8((this.cmp_call_retptr + i) & 0x1FFFFFFF, 0xA0000000, this.cmp_call_retarray[data8][i]);
                     mips.cycles += 1;
                 }
 
@@ -425,7 +415,7 @@ public class PseudoVM {
     }
 
     void bsod(String msg) {
-        if(this.mips.hard_halted)
+        if (this.mips.hard_halted)
             return;
 
         try {
@@ -456,60 +446,60 @@ public class PseudoVM {
     }
 
     Object run(int mode) throws Exception {
-        if(!is_booted) {
-            if(mode != 0) {
+        if (!is_booted) {
+            if (mode != 0) {
                 System.out.printf("Waiting for sync call...\n");
                 return null;
             }
-            machine.beep((short)400, (short)20);
+            machine.beep((short) 400, (short) 20);
             System.out.printf("Booting!\n");
             System.out.printf("Components: %d\n", this.machine.componentCount());
 
             this.is_booted = true;
 
             Map<String, String> m = this.machine.components();
-            for(String k: m.keySet()) {
+            for (String k : m.keySet()) {
                 String v = m.get(k);
-                if(v.equals("computer")) this.addr_comp = k;
-                if(v.equals("gpu")) this.addr_gpu = k;
-                if(v.equals("screen")) this.addr_screen = k;
-                if(v.equals("eeprom")) this.addr_eeprom = k;
+                if (v.equals("computer")) this.addr_comp = k;
+                if (v.equals("gpu")) this.addr_gpu = k;
+                if (v.equals("screen")) this.addr_screen = k;
+                if (v.equals("eeprom")) this.addr_eeprom = k;
                 System.out.printf(" - %s = %s\n", k, v);
             }
 
-            if(addr_screen != null && addr_gpu != null)
+            if (addr_screen != null && addr_gpu != null)
                 machine.invoke(addr_gpu, "bind", new Object[]{addr_screen});
 
-            if(addr_gpu != null) {
+            if (addr_gpu != null) {
                 machine.invoke(addr_gpu, "setForeground", new Object[]{0xFFFFFF, false});
                 machine.invoke(addr_gpu, "setBackground", new Object[]{0x000000, false});
                 Object[] gpuSizeO = machine.invoke(addr_gpu, "getResolution",
                         new Object[]{});
                 int w = 40;
                 int h = 16;
-                if(gpuSizeO.length >= 1 && gpuSizeO[0] instanceof Integer)
-                    w = (Integer)gpuSizeO[0];
-                if(gpuSizeO.length >= 2 && gpuSizeO[1] instanceof Integer)
-                    h = (Integer)gpuSizeO[1];
+                if (gpuSizeO.length >= 1 && gpuSizeO[0] instanceof Integer)
+                    w = (Integer) gpuSizeO[0];
+                if (gpuSizeO.length >= 2 && gpuSizeO[1] instanceof Integer)
+                    h = (Integer) gpuSizeO[1];
                 machine.invoke(addr_gpu, "fill", new Object[]{1, 1, w, h, " "});
                 // YES WE KNOW IT BOOTS JUST LIKE THE LAST 5000 TIMES
                 //machine.invoke(addr_gpu, "set", new Object[]{1, h, "BOOT TEST STRING"});
             }
 
             // Clear RAM
-            for(int i = 0; i < mips.ram.length; i++) {
+            for (int i = 0; i < mips.ram.length; i++) {
                 mips.ram[i] = 0;
             }
 
             // Load EEPROM
-            if(addr_eeprom != null) {
+            if (addr_eeprom != null) {
                 Object[] eeDataO = machine.invoke(addr_eeprom, "get", new Object[]{});
-                if(eeDataO != null && eeDataO.length >= 1 && eeDataO[0] instanceof byte[]) {
+                if (eeDataO != null && eeDataO.length >= 1 && eeDataO[0] instanceof byte[]) {
                     //byte[] eeprom_data = ((String)eeDataO[0]).getBytes("ISO-8859-1");
-                    byte[] eeprom_data = (byte[])eeDataO[0];
+                    byte[] eeprom_data = (byte[]) eeDataO[0];
                     try {
-                        for(int i = 0; i < eeprom_data.length; i++) {
-                            mips.mem_write_8(0x00001000+i, 0xA0000000, eeprom_data[i]);
+                        for (int i = 0; i < eeprom_data.length; i++) {
+                            mips.mem_write_8(0x00001000 + i, 0xA0000000, eeprom_data[i]);
                         }
 
                         // set up jump vector
@@ -529,13 +519,13 @@ public class PseudoVM {
                         mips.reset();
                         System.err.printf("BIOS loaded - EEPROM size = %08X, pc = %08X\n"
                                 , eeprom_data.length, mips.pc);
-                    } catch(Exception e) {
+                    } catch (Exception e) {
                         System.err.printf("exception fired in EEPROM load\n");
                         e.printStackTrace();
                         bsod("Exception loading EEPROM!");
                     }
                 } else {
-                    if(eeDataO != null && eeDataO.length >= 1 && eeDataO[0] != null)
+                    if (eeDataO != null && eeDataO.length >= 1 && eeDataO[0] != null)
                         System.err.printf("the type we actually want is %s\n",
                                 eeDataO[0].getClass().getTypeName());
                     else
@@ -548,21 +538,23 @@ public class PseudoVM {
         }
 
         // Run some cycles
-        if(mode == 1) { mode = 2; } // TEST
+        if (mode == 1) {
+            mode = 2;
+        } // TEST
 
         try {
-            if(mode == 1) return (Integer)0;
+            if (mode == 1) return 0;
 
-            if(!mips.hard_halted) {
+            if (!mips.hard_halted) {
                 // TODO: adaptive cycle count
-                int cycs = (mode == 0 ? 200 : 40*1000*1000/20);
+                int cycs = (mode == 0 ? 200 : 40 * 1000 * 1000 / 20);
                 mips.run_cycles(cycs);
-                if(mips.hard_halted){
+                if (mips.hard_halted) {
                     bsod("Halted");
-                } else if(mips.sync_call) {
+                } else if (mips.sync_call) {
                     return null;
-                } else if(mips.need_sleep) {
-                    return (Integer)1;
+                } else if (mips.need_sleep) {
+                    return 1;
                 }
             }
 
@@ -572,6 +564,6 @@ public class PseudoVM {
             e.printStackTrace();
         }
 
-	    return (Integer)0;
+        return 0;
     }
 }

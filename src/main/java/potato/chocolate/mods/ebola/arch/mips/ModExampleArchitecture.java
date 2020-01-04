@@ -18,10 +18,10 @@ import java.util.concurrent.Callable;
  * specific parts. It is not intended for use or distribution, but you're free
  * to base a proper addon on this code.
  */
-@Mod(modid = "OpenComputers|MIPS",
+@Mod(modid = "openmips",
         name = "MIPS for OpenComputers",
-        version = "1.0.1",
-        dependencies = "required-after:OpenComputers@[1.7.0,)")
+        version = "1.0.2",
+        dependencies = "required-after:opencomputers@[1.7.0,)")
 public class ModExampleArchitecture {
     @Mod.Instance
     public static ModExampleArchitecture instance;
@@ -49,9 +49,10 @@ public class ModExampleArchitecture {
         li.cil.oc.api.Items.registerFloppy("MLua53", EnumDyeColor.BLACK, new Callable<FileSystem>() {
             @Override
             public FileSystem call() throws Exception {
-                return li.cil.oc.api.FileSystem.fromClass(this.getClass(),
-                         "ocmips", "loot/lua53/");
+                FileSystem ocmips = li.cil.oc.api.FileSystem.fromClass(this.getClass(),
+                        "ocmips", "loot/lua53/");
+                return ocmips;
             }
-        });
+        }, true);
     }
 }

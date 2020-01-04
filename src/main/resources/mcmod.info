@@ -1,5 +1,5 @@
 [{
-  "modid": "OpenComputers|MIPS",
+  "modid": "openmips",
   "name": "MIPS for OpenComputers",
   "description": "Finally, a real CPU for OpenComputers!",
   "version": "${version}",
@@ -8,7 +8,7 @@
   "authorList": ["GreaseMonkey", "gamax92", "Sangar"],
   "credits" : "Inspired by a couple of other mods, most notably ComputerCraft.",
   "logoFile" : "assets/opencomputers/textures/gui/logo.png",
-  "requiredMods": [ "Forge@[12.18.3.2221,)" ],
+  "requiredMods": [ "Forge@[14.23.5.2768,)" ],
   "dependencies": [
     "OpenComputers"
   ],
